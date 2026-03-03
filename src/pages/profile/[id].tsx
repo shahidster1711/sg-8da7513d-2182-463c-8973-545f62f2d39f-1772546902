@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
-import { ListingCard } from "@/components/ListingCard";
+import ListingCard from "@/components/ListingCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,36 +22,36 @@ export default function ProfilePage() {
   const [avgRating, setAvgRating] = useState(0);
 
   useEffect(() => {
-    if (id) {
-      fetchProfile();
-      fetchListings();
-      fetchReviews();
+    if (id && typeof id === "string") {
+      fetchProfile(id);
+      fetchListings(id);
+      fetchReviews(id);
     }
   }, [id]);
 
-  async function fetchProfile() {
-    const { data, error } = await getProfile(id as string);
+  async function fetchProfile(userId: string) {
+    const { data, error } = await getProfile(userId);
     if (!error && data) {
       setProfile(data);
     }
   }
 
-  async function fetchListings() {
+  async function fetchListings(userId: string) {
     const { data } = await supabase
       .from("listings")
       .select("*")
-      .eq("seller_id", id)
+      .eq("seller_id", userId)
       .eq("status", "active")
       .order("created_at", { ascending: false });
 
-    setListings(data || []);
+    setListings((data as unknown as Listing[]) || []);
   }
 
-  async function fetchReviews() {
+  async function fetchReviews(userId: string) {
     const { data } = await supabase
       .from("reviews")
       .select(`*, reviewer:profiles!reviews_reviewer_id_fkey(*)`)
-      .eq("seller_id", id)
+      .eq("seller_id", userId)
       .order("created_at", { ascending: false });
 
     if (data) {

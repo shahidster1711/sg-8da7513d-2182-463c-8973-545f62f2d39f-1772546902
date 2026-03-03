@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
-import { ListingCard } from "@/components/ListingCard";
+import ListingCard from "@/components/ListingCard";
 import { supabase } from "@/integrations/supabase/client";
 import type { Listing } from "@/types";
 import { Heart } from "lucide-react";
