@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Clock } from "lucide-react";
 import { toggleWishlist } from "@/services/wishlistService";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Listing } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -16,20 +17,41 @@ interface ListingCardProps {
 
 export default function ListingCard({ listing, onWishlistChange }: ListingCardProps) {
   const { toast } = useToast();
+  const [userId, setUserId] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(listing.is_wishlisted || false);
   const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  async function checkUser() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    setUserId(session?.user?.id || null);
+  }
 
   async function handleWishlistToggle(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isTogglingWishlist) return;
+    if (isTogglingWishlist || !userId) {
+      if (!userId) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to save items to your wishlist",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
 
     setIsTogglingWishlist(true);
     const newWishlistState = !isWishlisted;
     setIsWishlisted(newWishlistState);
 
-    const { error } = await toggleWishlist(listing.id);
+    const { error } = await toggleWishlist(userId, listing.id, isWishlisted);
 
     if (error) {
       setIsWishlisted(!newWishlistState);
@@ -52,7 +74,6 @@ export default function ListingCard({ listing, onWishlistChange }: ListingCardPr
   }
 
   const imageUrl = listing.images?.[0] || "/placeholder-image.jpg";
-  const sellerName = listing.profiles?.full_name || "Anonymous";
 
   return (
     <Link href={`/listings/${listing.id}`}>
@@ -120,7 +141,7 @@ export default function ListingCard({ listing, onWishlistChange }: ListingCardPr
             </div>
             
             {listing.profiles?.is_verified && (
-              <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-600 border-0">
+              <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border-0">
                 Verified
               </Badge>
             )}
