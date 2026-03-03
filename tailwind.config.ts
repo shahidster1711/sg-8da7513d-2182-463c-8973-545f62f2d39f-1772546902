@@ -51,16 +51,18 @@ const config: Config = {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+        ocean: {
+          DEFAULT: "hsl(var(--ocean-blue))",
+          blue: "hsl(var(--ocean-blue))",
+          deep: "hsl(var(--deep-blue))",
         },
+        sunset: {
+          DEFAULT: "hsl(var(--sunset-orange))",
+          orange: "hsl(var(--sunset-orange))",
+        },
+        coral: "hsl(var(--coral-pink))",
+        seafoam: "hsl(var(--seafoam-green))",
+        sandy: "hsl(var(--sandy-beige))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -84,10 +86,20 @@ const config: Config = {
             height: "0",
           },
         },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(100%)" },
+          "100%": { transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.5s ease-out",
+        "slide-up": "slide-up 0.3s ease-out",
       },
     },
   },
