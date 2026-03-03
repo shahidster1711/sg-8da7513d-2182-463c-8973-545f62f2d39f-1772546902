@@ -1,7 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Listing, SearchFilters } from "@/types";
 
-export async function createListing(listing: Partial<Listing>) {
+export type CreateListingInput = Omit<
+  Listing,
+  "id" | "created_at" | "updated_at" | "status" | "profiles" | "is_wishlisted"
+>;
+
+export async function createListing(listing: CreateListingInput) {
   const { data, error } = await supabase
     .from("listings")
     .insert(listing)

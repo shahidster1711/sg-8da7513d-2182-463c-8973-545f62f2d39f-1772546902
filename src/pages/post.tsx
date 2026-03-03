@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createListing } from "@/services/listingService";
 import { uploadImages } from "@/services/storageService";
 import { generateDescription } from "@/lib/gemini";
-import { CATEGORIES, ISLANDS } from "@/types";
+import { CATEGORIES, ISLANDS, Category } from "@/types";
 import { Upload, X, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -142,7 +142,7 @@ export default function PostListing() {
         title: formData.title,
         description: formData.description,
         price: Number(formData.price),
-        category: formData.category,
+        category: formData.category as Category,
         condition: formData.condition,
         location: formData.location,
         images: urls,

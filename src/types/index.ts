@@ -102,3 +102,22 @@ export interface SearchFilters {
   location?: string;
   sortBy?: "newest" | "price_asc" | "price_desc" | "relevance";
 }
+
+export interface Review {
+  id: string;
+  reviewer_id: string;
+  seller_id: string;
+  listing_id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  reviewer?: Profile;
+}
+
+export interface Report {
+  id: string;
+  reporter_id: string;
+  listing_id: string;
+  reason: string;
+  created_at: string;
+}
