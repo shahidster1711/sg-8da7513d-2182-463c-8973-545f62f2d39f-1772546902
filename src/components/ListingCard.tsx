@@ -12,12 +12,12 @@ import { formatDistanceToNow } from "date-fns";
 
 interface ListingCardProps {
   listing: Listing;
-  onWishlistToggle?: () => void;
+  onWishlistChange?: () => void;
 }
 
 export default function ListingCard({
   listing,
-  onWishlistToggle,
+  onWishlistChange,
 }: ListingCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(
     listing.is_wishlisted || false
@@ -50,7 +50,7 @@ export default function ListingCard({
       setIsWishlisted(!newState); // Revert on error
       console.error("Error toggling wishlist:", error);
     } else {
-      onWishlistToggle?.();
+      onWishlistChange?.();
     }
 
     setIsTogglingWishlist(false);
