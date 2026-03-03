@@ -1,57 +1,53 @@
 import { supabase } from "@/integrations/supabase/client";
 import imageCompression from "browser-image-compression";
 
-export async function uploadListingImage(
-  file: File,
-  listingId: string,
-  index: number
-): Promise<{ url: string | null; error: Error | null }> {
+export async function uploadImages(files: File[]) {
+  const urls: string[] = [];
+  let error: Error | null = null;
+
   try {
-    // Compress image before upload
-    const options = {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 1920,
-      useWebWorker: true,
-    };
-
-    const compressedFile = await imageCompression(file, options);
-
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${listingId}-${index}-${Date.now()}.${fileExt}`;
-    const filePath = `listings/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("listings")
-      .upload(filePath, compressedFile, {
-        upsert: true,
+    for (const file of files) {
+      // Compress image
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
       });
 
-    if (uploadError) throw uploadError;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
 
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("listings").getPublicUrl(filePath);
+      const { error: uploadError, data } = await supabase.storage
+        .from("listing-images")
+        .upload(filePath, compressedFile);
 
-    return { url: publicUrl, error: null };
-  } catch (error) {
-    console.error("Error uploading image:", error);
-    return { url: null, error: error as Error };
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("listing-images").getPublicUrl(filePath);
+
+      urls.push(publicUrl);
+    }
+  } catch (err) {
+    console.error("Error uploading images:", err);
+    error = err as Error;
   }
+
+  return { urls: urls.length > 0 ? urls : null, error };
 }
 
-export async function deleteListingImage(
-  url: string
-): Promise<{ error: Error | null }> {
+export async function deleteImage(url: string) {
   try {
-    // Extract file path from URL
-    const urlParts = url.split("/");
-    const fileName = urlParts[urlParts.length - 1];
-    const filePath = `listings/${fileName}`;
+    const path = url.split("/").pop();
+    if (!path) return { error: new Error("Invalid URL") };
 
-    const { error } = await supabase.storage.from("listings").remove([filePath]);
-
-    if (error) throw error;
-    return { error: null };
+    const { error } = await supabase.storage
+      .from("listing-images")
+      .remove([path]);
+      
+    return { error };
   } catch (error) {
     console.error("Error deleting image:", error);
     return { error: error as Error };
