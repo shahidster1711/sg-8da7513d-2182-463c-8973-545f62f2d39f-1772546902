@@ -67,7 +67,7 @@ export async function getListing(
   userId?: string
 ): Promise<{ data: Listing | null; error: Error | null }> {
   try {
-    let query = supabase
+    const query = supabase
       .from("listings")
       .select("*, profiles!listings_seller_id_fkey(id, full_name, avatar_url, location, is_verified)")
       .eq("id", id)
