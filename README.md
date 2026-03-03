@@ -1,84 +1,90 @@
-# AndamanBazaar 🏝️
+# 🏝️ AndamanBazaar
 
-A hyperlocal buy/sell marketplace for the Andaman and Nicobar Islands, India. Built with Next.js, TypeScript, Supabase, and AI-powered features.
+A hyperlocal buy/sell marketplace for the Andaman and Nicobar Islands, India. Built with Next.js, Supabase, and Google Gemini AI.
 
-## 🚀 Features
+![AndamanBazaar](public/og-image.png)
 
-### Core Functionality
-- **User Authentication**: Email/password and Google OAuth via Supabase Auth
-- **Product Listings**: Post items with images, descriptions, pricing, and location
+## 🌟 Features
+
+### Core Marketplace
+- **Product Listings**: Post items with title, description, price, category, condition, images (up to 5), and location
 - **AI-Powered Descriptions**: Generate product descriptions using Google Gemini API
-- **Advanced Search**: Full-text search with category, price, and location filters
-- **Real-time Messaging**: In-app chat between buyers and sellers
-- **Wishlist**: Save favorite listings for later
-- **Seller Profiles**: Public profiles with ratings and reviews
-- **Mobile-First Design**: Responsive UI optimized for all devices
+- **Advanced Search**: Full-text search with filters (category, price, condition, location, sorting)
+- **Categories**: Electronics, Furniture, Clothing, Vehicles, Marine Equipment, Fresh Produce, Handicrafts, Services, Jobs, Real Estate, Pets, and more
 
-### Categories
-Electronics, Furniture, Clothing & Accessories, Vehicles, Marine Equipment, Fresh Produce, Handicrafts & Souvenirs, Services, Jobs, Real Estate, Pets, Miscellaneous
+### User Features
+- **Authentication**: Email/password and Google OAuth via Supabase Auth
+- **User Profiles**: Name, phone, location, avatar, verification badge
+- **Real-time Messaging**: Direct chat between buyers and sellers with unread badges
+- **Wishlist**: Save favorite listings with heart icon
+- **Reviews & Ratings**: Leave star ratings and reviews for sellers
+- **Seller Dashboard**: View active listings, edit/delete items, mark as sold
 
-### Locations
-Port Blair, Havelock, Neil Island, Baratang, Diglipur, Mayabunder, Rangat, Car Nicobar, Great Nicobar, Little Andaman, and more
+### Admin Features
+- **Admin Dashboard**: View all listings, users, and reported items
+- **Moderation**: Delete listings, manage reports
+- **Analytics**: Total users, active listings, system stats
 
-## 🛠️ Tech Stack
+### Technical Features
+- **Mobile-First Design**: Responsive UI with sticky bottom navigation
+- **Island Theme**: Teal/turquoise primary colors with sandy beige accents
+- **Dark Mode**: Full dark mode support
+- **Image Compression**: Client-side image optimization before upload
+- **SEO Optimized**: Next.js metadata API with OG images
+- **Real-time Updates**: Supabase Realtime for instant messaging
+- **Row Level Security**: Secure database access with RLS policies
 
-- **Frontend**: Next.js 14 (Pages Router), TypeScript, Tailwind CSS
+## 🚀 Tech Stack
+
+- **Frontend**: Next.js 15 (Pages Router), TypeScript, Tailwind CSS
 - **UI Components**: shadcn/ui
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Realtime)
 - **AI**: Google Gemini API
+- **Image Processing**: browser-image-compression
 - **Deployment**: Vercel
-- **Image Handling**: browser-image-compression
 
 ## 📋 Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ 
+- npm or yarn
 - Supabase account
 - Google Cloud account (for Gemini API)
 - Vercel account (for deployment)
 
-## 🔧 Installation
+## 🛠️ Installation
 
-1. **Clone the repository**
+### 1. Clone the repository
+
 ```bash
 git clone <your-repo-url>
 cd andamanbazaar
-```
-
-2. **Install dependencies**
-```bash
 npm install
 ```
 
-3. **Set up Supabase**
+### 2. Set up Supabase
 
-Create a new Supabase project at https://supabase.com
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to Project Settings > API to get your credentials
+3. Go to Authentication > Providers:
+   - Enable Email provider
+   - Enable Google provider (add OAuth credentials from Google Cloud Console)
+4. Go to Storage and create a bucket named `listing-images` with public access
 
-Run the database migrations:
-- Navigate to SQL Editor in your Supabase dashboard
-- Copy and run the contents of `supabase/migrations/20260303135553_migration_3af4290f.sql`
+### 3. Set up Google Gemini API
 
-Create a storage bucket named `listing-images`:
-- Go to Storage in Supabase dashboard
-- Create a new public bucket named `listing-images`
-- Set the file size limit to 5MB
-- Enable the following policies:
-  - Allow authenticated users to upload
-  - Allow public read access
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create an API key
+3. Enable the Generative Language API
 
-4. **Set up Google Gemini API**
-
-- Go to Google AI Studio: https://makersuite.google.com/app/apikey
-- Create a new API key
-- Copy the API key for use in environment variables
-
-5. **Configure environment variables**
+### 4. Configure environment variables
 
 Create a `.env.local` file in the root directory:
 
 ```env
 # Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Google Gemini API
 NEXT_PUBLIC_GEMINI_API_KEY=your-gemini-api-key
@@ -87,151 +93,195 @@ NEXT_PUBLIC_GEMINI_API_KEY=your-gemini-api-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-6. **Run the development server**
+### 5. Run database migrations
+
+The database schema is automatically created via the Supabase SQL editor or migrations. The main tables are:
+
+- `profiles` - User profiles with phone, location, avatar
+- `listings` - Product listings with images, price, category
+- `messages` - Direct messages between users
+- `conversations` - Message threads
+- `wishlists` - Saved listings
+- `reviews` - Seller ratings and reviews
+- `reports` - Reported listings
+
+All tables have Row Level Security (RLS) policies enabled.
+
+### 6. Run the development server
+
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 🗄️ Database Schema
+## 📁 Project Structure
 
-The application uses the following main tables:
+```
+andamanbazaar/
+├── src/
+│   ├── components/          # React components
+│   │   ├── ui/             # shadcn/ui components
+│   │   ├── ListingCard.tsx # Product card component
+│   │   ├── Navigation.tsx  # Main navigation
+│   │   └── SEO.tsx         # SEO meta tags
+│   ├── contexts/           # React contexts
+│   │   └── ThemeProvider.tsx
+│   ├── hooks/              # Custom React hooks
+│   │   ├── use-toast.ts
+│   │   └── use-mobile.tsx
+│   ├── integrations/
+│   │   └── supabase/       # Supabase client and types
+│   ├── lib/                # Utility functions
+│   │   ├── gemini.ts       # AI description generation
+│   │   └── utils.ts        # Helper functions
+│   ├── pages/              # Next.js pages
+│   │   ├── api/            # API routes
+│   │   ├── auth/           # Authentication pages
+│   │   ├── listings/       # Listing detail pages
+│   │   ├── profile/        # User profile pages
+│   │   ├── admin/          # Admin dashboard
+│   │   ├── index.tsx       # Homepage
+│   │   ├── search.tsx      # Search page
+│   │   ├── post.tsx        # Create listing
+│   │   ├── messages.tsx    # Chat interface
+│   │   ├── wishlist.tsx    # Saved items
+│   │   └── settings.tsx    # User settings
+│   ├── services/           # API service layer
+│   │   ├── authService.ts
+│   │   ├── listingService.ts
+│   │   ├── messageService.ts
+│   │   ├── wishlistService.ts
+│   │   ├── reviewService.ts
+│   │   ├── reportService.ts
+│   │   ├── profileService.ts
+│   │   └── storageService.ts
+│   ├── styles/
+│   │   └── globals.css     # Global styles
+│   └── types/
+│       └── index.ts        # TypeScript types
+├── public/                 # Static assets
+├── supabase/
+│   └── migrations/         # Database migrations
+└── ...config files
+```
 
-- **profiles**: User information and settings
-- **listings**: Product listings with images and details
-- **messages**: Direct messages between users
-- **conversations**: Chat threads for each listing
-- **wishlists**: Saved/favorited listings
-- **reviews**: Seller ratings and feedback
-- **reports**: Flagged listings for moderation
+## 🔐 Database Schema
 
-All tables include Row Level Security (RLS) policies for data protection.
+### Tables
+
+**profiles**
+- User information (name, phone, location, avatar, verification status)
+
+**listings**
+- Product listings with seller_id, title, description, price, category, condition, images[], location, status
+
+**messages**
+- Direct messages with conversation_id, sender_id, receiver_id, content, read status
+
+**conversations**
+- Message threads linking listings with buyers and sellers
+
+**wishlists**
+- Saved listings per user
+
+**reviews**
+- Ratings and comments for sellers
+
+**reports**
+- User-reported listings with reason
+
+### Row Level Security (RLS)
+
+All tables have RLS policies to ensure:
+- Users can only read their own data
+- Users can create their own listings
+- Users can only edit/delete their own content
+- Public read access for listings and profiles
+- Secure messaging between authenticated users
 
 ## 🎨 Design System
 
-- **Primary Color**: Teal (#0D9488) - representing the tropical ocean
-- **Accent**: Sandy Beige (#FEF3C7) - island beaches
-- **Typography**: System fonts with excellent readability
-- **Components**: Pre-built shadcn/ui components with island theme
-- **Dark Mode**: Full dark mode support
+### Colors
+- **Primary**: Teal/Turquoise (#0D9488)
+- **Background**: Warm sandy beige (#FEF3C7)
+- **Accent**: Coral for CTAs
+- **Text**: Dark gray with proper contrast
 
-## 📱 Key Pages
+### Typography
+- **Headings**: Bold, clear hierarchy
+- **Body**: Readable sans-serif
+- **Mobile-first**: Responsive text scaling
 
-- `/` - Homepage with search and featured listings
-- `/search` - Advanced search with filters
-- `/post` - Create new listing (auth required)
-- `/listings/[id]` - Listing detail page
-- `/messages` - Real-time messaging
-- `/wishlist` - Saved items
-- `/profile/[id]` - Public seller profile
-- `/settings` - Account settings
-- `/auth/login` - Sign in page
-- `/auth/signup` - Registration page
+### Components
+- Rounded cards with shadows
+- Smooth transitions and hover effects
+- Icon-first navigation
+- Optimistic UI updates
 
-## 🔐 Authentication
-
-The app supports two authentication methods:
-
-1. **Email/Password**: Traditional email-based signup and login
-2. **Google OAuth**: One-click sign in with Google
-
-Both methods are handled by Supabase Auth and create a user profile automatically.
-
-## 🖼️ Image Upload
-
-Images are:
-- Compressed client-side before upload (max 1MB, 1920px)
-- Stored in Supabase Storage
-- Limited to 5 images per listing
-- Publicly accessible via CDN URLs
-
-## 🤖 AI Features
-
-### Product Description Generator
-- Powered by Google Gemini 1.5 Flash
-- Generates compelling descriptions from title and category
-- One-click generation during listing creation
-- Falls back gracefully if API is unavailable
-
-## 🚀 Deployment
+## 🚢 Deployment
 
 ### Deploy to Vercel
 
-1. **Push code to GitHub**
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin <your-github-repo>
-git push -u origin main
-```
+1. Push your code to GitHub
+2. Import project in Vercel
+3. Add environment variables
+4. Deploy
 
-2. **Import project to Vercel**
-- Go to https://vercel.com
-- Click "New Project"
-- Import your GitHub repository
-- Configure environment variables (same as `.env.local`)
-- Deploy
+Vercel will automatically:
+- Build your Next.js app
+- Configure custom domains
+- Enable preview deployments
+- Set up CI/CD
 
-3. **Configure Supabase redirect URLs**
-- Go to Supabase Dashboard → Authentication → URL Configuration
-- Add your Vercel domain to "Site URL"
-- Add to "Redirect URLs": `https://your-domain.vercel.app/auth/callback`
+### Post-Deployment Steps
 
-### Environment Variables for Production
+1. Update Supabase redirect URLs:
+   - Go to Authentication > URL Configuration
+   - Add your Vercel domain to redirect URLs
 
-Make sure to add all environment variables in Vercel:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_GEMINI_API_KEY`
-- `NEXT_PUBLIC_APP_URL` (your Vercel domain)
+2. Configure Google OAuth:
+   - Add Vercel domain to authorized redirect URIs in Google Cloud Console
 
-## 🔒 Security
+3. Test all features:
+   - Authentication flows
+   - Image uploads
+   - Real-time messaging
+   - Search functionality
 
-- **Row Level Security (RLS)**: All database tables protected with RLS policies
-- **Authentication**: Secure session management via Supabase
-- **Image Upload**: Client-side compression and validation
-- **Input Validation**: Form validation on both client and server
-- **XSS Protection**: React's built-in XSS protection
-- **CORS**: Properly configured for Supabase and API routes
+## 📱 Mobile App Considerations
 
-## 📊 Performance
+The current implementation is a responsive web app. For native mobile apps:
 
-- **Image Optimization**: Next.js Image component with lazy loading
-- **Code Splitting**: Automatic code splitting by Next.js
-- **Caching**: Static page generation where possible
-- **Compression**: Gzip compression enabled
-- **CDN**: Vercel Edge Network for global distribution
+1. Consider React Native or Flutter
+2. Use Supabase client libraries for mobile
+3. Implement push notifications for messages
+4. Add offline support with local storage
 
-## 🐛 Troubleshooting
+## 🔧 Configuration
 
-### Common Issues
+### Image Upload Settings
 
-**Build fails with TypeScript errors**
-```bash
-npm run build
-```
-Check the error messages and fix type issues.
+Configure in `storageService.ts`:
+- Max file size: 5MB
+- Allowed formats: JPG, PNG, WebP
+- Compression quality: 0.8
+- Max images per listing: 5
 
-**Images not uploading**
-- Verify Supabase storage bucket `listing-images` exists and is public
-- Check file size (should be under 5MB after compression)
-- Verify authentication token is valid
+### Rate Limiting
 
-**Gemini API not working**
-- Verify API key is correct in environment variables
-- Check API quota limits in Google Cloud Console
-- The feature gracefully degrades if API is unavailable
+Implement via Supabase Edge Functions:
+- Max listings per user: 10/day
+- Prevent spam postings
 
-**Real-time messages not working**
-- Verify Supabase Realtime is enabled for your project
-- Check browser console for WebSocket connection errors
-- Ensure RLS policies allow reading messages
+### Search Configuration
+
+Full-text search powered by PostgreSQL:
+- Indexes on title and description
+- Configurable relevance ranking
+- Filter aggregations
 
 ## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -243,18 +293,19 @@ Contributions are welcome! Please follow these steps:
 
 This project is licensed under the MIT License.
 
+## 🆘 Support
+
+For issues or questions:
+- Open an issue on GitHub
+- Email: support@andamanbazaar.com
+- Visit: [andamanbazaar.com](https://andamanbazaar.com)
+
 ## 🙏 Acknowledgments
 
-- shadcn/ui for the beautiful component library
-- Supabase for the backend infrastructure
-- Google Gemini for AI capabilities
-- Vercel for hosting and deployment
-- The Andaman & Nicobar Islands community
-
-## 📞 Support
-
-For support, email support@andamanbazaar.com or open an issue in the repository.
+- Built for the Andaman & Nicobar Islands community
+- Inspired by OLX and other classifieds platforms
+- Powered by Supabase and Next.js
 
 ---
 
-Built with ❤️ for the Andaman & Nicobar Islands community
+**Built with ❤️ for the Andaman & Nicobar Islands**
