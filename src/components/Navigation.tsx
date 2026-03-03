@@ -1,194 +1,184 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import {
-  Home,
-  Search,
-  PlusCircle,
-  MessageSquare,
-  User,
-  LogOut,
-  Settings,
-  Heart,
-  Package,
-  Bell,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { getUnreadCount } from "@/services/messageService";
+import { 
+  Home, 
+  Search, 
+  PlusCircle, 
+  MessageCircle, 
+  User,
+  Settings,
+  LogOut,
+  Heart,
+  Package,
+  Moon,
+  Sun
+} from "lucide-react";
+import { useTheme } from "next-themes";
 import type { Profile } from "@/types";
-import { ThemeSwitch } from "@/components/ThemeSwitch";
 
 export function Navigation() {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     checkUser();
-    setupRealtimeSubscription();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   async function checkUser() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
-    if (session?.user) {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      setProfile(data as Profile);
-      loadUnreadCount(session.user.id);
-    }
+    setUser(session?.user || null);
   }
 
-  async function loadUnreadCount(userId: string) {
-    const { count } = await getUnreadCount(userId);
+  async function fetchProfile() {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    setProfile(data);
+  }
+
+  async function fetchUnreadCount() {
+    const { count } = await getUnreadCount(user.id);
     setUnreadCount(count);
   }
 
-  function setupRealtimeSubscription() {
-    const channel = supabase
-      .channel("messages")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
-        (payload) => {
-          if (payload.new.receiver_id === profile?.id) {
-            setUnreadCount((prev) => prev + 1);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }
-
-  async function handleLogout() {
+  async function handleSignOut() {
     await supabase.auth.signOut();
     router.push("/");
+    window.location.reload();
   }
 
-  const navItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/search", icon: Search, label: "Search" },
-    { href: "/post", icon: PlusCircle, label: "Post" },
-    { href: "/messages", icon: MessageSquare, label: "Messages", badge: unreadCount },
-  ];
+  const isActive = (path: string) => router.pathname === path;
 
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:block sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
+      <nav className="hidden md:block bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
-                AndamanBazaar
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xl">A</span>
               </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                AndamanBazaar
+              </span>
             </Link>
 
-            <div className="flex items-center gap-4">
-              {profile ? (
+            {/* Desktop Menu */}
+            <div className="flex items-center gap-6">
+              <Link href="/search">
+                <Button variant="ghost" className="gap-2">
+                  <Search className="h-5 w-5" />
+                  Browse
+                </Button>
+              </Link>
+
+              {user ? (
                 <>
-                  <Link href="/search">
-                    <Button variant="ghost" size="sm">
-                      <Search className="h-4 w-4 mr-2" />
-                      Search
-                    </Button>
-                  </Link>
                   <Link href="/post">
-                    <Button size="sm">
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      Post Listing
+                    <Button className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600">
+                      <PlusCircle className="h-5 w-5" />
+                      Post Ad
                     </Button>
                   </Link>
+
                   <Link href="/messages">
-                    <Button variant="ghost" size="icon" className="relative">
-                      <MessageSquare className="h-5 w-5" />
+                    <Button variant="ghost" className="gap-2 relative">
+                      <MessageCircle className="h-5 w-5" />
+                      Messages
                       {unreadCount > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                        <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500">
                           {unreadCount}
                         </Badge>
                       )}
                     </Button>
                   </Link>
-                  <ThemeSwitch />
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" className="gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={profile.avatar_url || undefined} />
+                          <AvatarImage src={profile?.avatar_url || ""} />
                           <AvatarFallback>
-                            {profile.full_name?.[0] || profile.email?.[0] || "U"}
+                            {profile?.full_name?.[0] || "U"}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/profile/${profile.id}`}>
-                          <User className="h-4 w-4 mr-2" />
-                          My Profile
-                        </Link>
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push(`/profile/${user.id}`)}>
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/my-listings">
-                          <Package className="h-4 w-4 mr-2" />
-                          My Listings
-                        </Link>
+                      <DropdownMenuItem onClick={() => router.push("/wishlist")}>
+                        <Heart className="mr-2 h-4 w-4" />
+                        Wishlist
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/wishlist">
-                          <Heart className="h-4 w-4 mr-2" />
-                          Wishlist
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/settings">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Settings
-                        </Link>
+                      <DropdownMenuItem onClick={() => router.push("/settings")}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout}>
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
+                      <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                        {theme === "dark" ? (
+                          <Sun className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Moon className="mr-2 h-4 w-4" />
+                        )}
+                        Toggle Theme
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </>
               ) : (
-                <>
-                  <ThemeSwitch />
+                <div className="flex gap-3">
                   <Link href="/auth/login">
-                    <Button variant="ghost" size="sm">
-                      Login
-                    </Button>
+                    <Button variant="ghost">Sign In</Button>
                   </Link>
                   <Link href="/auth/signup">
-                    <Button size="sm">Sign Up</Button>
+                    <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600">
+                      Sign Up
+                    </Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -196,37 +186,84 @@ export function Navigation() {
       </nav>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-        <div className="flex justify-around items-center h-16 px-2">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
+        <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-3">
+          <div className="flex justify-around items-center max-w-lg mx-auto">
+            <Link href="/">
               <Button
-                variant={router.pathname === item.href ? "default" : "ghost"}
+                variant="ghost"
                 size="sm"
-                className="flex flex-col h-14 w-14 relative"
+                className={`flex flex-col items-center gap-1 h-auto py-2 ${
+                  isActive("/") ? "text-blue-600" : "text-gray-600"
+                }`}
               >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-                {item.badge && item.badge > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {item.badge}
-                  </Badge>
-                )}
+                <Home className={`h-6 w-6 ${isActive("/") ? "fill-blue-600" : ""}`} />
+                <span className="text-xs font-medium">Home</span>
               </Button>
             </Link>
-          ))}
-          <Link href={profile ? `/profile/${profile.id}` : "/auth/login"}>
-            <Button
-              variant={
-                router.pathname.startsWith("/profile") ? "default" : "ghost"
-              }
-              size="sm"
-              className="flex flex-col h-14 w-14"
-            >
-              <User className="h-5 w-5" />
-              <span className="text-xs mt-1">Profile</span>
-            </Button>
-          </Link>
+
+            <Link href="/search">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex flex-col items-center gap-1 h-auto py-2 ${
+                  isActive("/search") ? "text-blue-600" : "text-gray-600"
+                }`}
+              >
+                <Search className="h-6 w-6" />
+                <span className="text-xs font-medium">Search</span>
+              </Button>
+            </Link>
+
+            <Link href="/post">
+              <Button
+                size="sm"
+                className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-lg -mt-6"
+              >
+                <PlusCircle className="h-7 w-7" />
+              </Button>
+            </Link>
+
+            <Link href="/messages">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex flex-col items-center gap-1 h-auto py-2 relative ${
+                  isActive("/messages") ? "text-blue-600" : "text-gray-600"
+                }`}
+              >
+                <MessageCircle className="h-6 w-6" />
+                {unreadCount > 0 && (
+                  <Badge className="absolute top-0 right-0 h-4 w-4 flex items-center justify-center p-0 text-xs bg-red-500">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </Badge>
+                )}
+                <span className="text-xs font-medium">Messages</span>
+              </Button>
+            </Link>
+
+            <Link href={user ? `/profile/${user.id}` : "/auth/login"}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex flex-col items-center gap-1 h-auto py-2 ${
+                  router.pathname.startsWith("/profile") ? "text-blue-600" : "text-gray-600"
+                }`}
+              >
+                {user ? (
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={profile?.avatar_url || ""} />
+                    <AvatarFallback className="text-xs">
+                      {profile?.full_name?.[0] || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <User className="h-6 w-6" />
+                )}
+                <span className="text-xs font-medium">Profile</span>
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
     </>
